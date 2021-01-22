@@ -15,7 +15,6 @@ library(reshape2)
 library(scales)
 
 library(forecast)
-
 ```
 
 ```{r, include=FALSE}
