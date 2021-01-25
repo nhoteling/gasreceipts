@@ -6,6 +6,8 @@ navbar:
       href: total_miles.html
     - text: "Gas Mileage"
       href: gas_mileage.html
+    - text: "Gas Prices"
+      href: gas_prices.html
 output_dir: "."
 output:
   html_document:

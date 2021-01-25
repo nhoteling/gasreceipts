@@ -1,0 +1,72 @@
+---
+title: "Gas Prices"
+---
+
+```{r, include=FALSE, eval=TRUE, warning=FALSE}
+# Gas prices
+df.rate <- df.miles
+
+# Read file from eia.gov
+df.gas <- read.csv("../data/U.S._All_Grades_All_Formulations_Retail_Gasoline_Prices_Monthly.csv",
+                   skip = 5, header=FALSE) %>%
+  mutate(date=my(V1)) %>% rename(mrate=V2) %>% select(date,mrate) %>%
+  filter(date >= min(df.rate$date))
+
+# Combine
+df.rate <- df.rate %>% left_join(df.gas)
+
+#
+# Plot gas prices over time
+#
+p.rate <- ggplot(df.rate) +
+  geom_segment(aes(x=date, xend=date, y=rate, yend=mrate), size=0.3,color="grey75",alpha=0.7) +
+  geom_line(aes(x=date, y=mrate), size=1.2, color="grey75", alpha=0.7) +
+  geom_point(aes(x=date, y=rate), color="grey25", size=1.0, alpha=0.8) +
+  #geom_line(aes(x=date, y=cor), color="indianred", size=1.2, alpha=0.8) +
+  scale_y_continuous(labels=dollar_format()) +
+  labs(x="Date", y="Gas Price") +
+  theme_minimal()
+
+```
+
+The plot below compares what we paid for gas with the national average monthly gas price according to https://www.eia.gov/.  Each data point represents the monthly aggregate for all gas purchased during a particular month, and the trendline indicates the national average.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
+p.rate
+```
+
+<details>
+<summary> <b> Details: Seasonality </b> </summary>
+
+```{r, include=FALSE}
+
+# Create a timeseries object
+ts.rate <- na.interp(ts(df.rate$rate, start = c(2005,4),frequency=12))
+fc.rate <- decompose(ts.rate)
+df.rate$trend <- as.numeric(fc.rate$trend)
+df.rate$seasonal <- as.numeric(fc.rate$seasonal)
+df.rate$cor <- as.numeric(fc.rate$x) - as.numeric(fc.rate$seasonal)
+
+# 
+df.rt <- df.rate %>% group_by(month=month(date, label=TRUE, abbr=TRUE)) %>% 
+  summarise(seasonal=mean(seasonal, na.rm=TRUE)) %>%
+  mutate(month = as.factor(month))
+
+p.srate <- ggplot(df.rt) +
+  geom_point(aes(x=month, y=seasonal), size=4, alpha=0.8) +
+  geom_line(aes(x=month, y=seasonal, group=1), size=1, alpha=0.2) + 
+  scale_y_continuous(labels=dollar_format()) +
+  labs(x="Month", y="Change in gas price") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10))
+```
+
+<br />
+The seasonal fluctuations in the gas prices amount to <b> `r dollar(max(df.rt$seasonal)-min(df.rt$seasonal)) ` </b>, with the peak price in <b> `r month(which.max(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>, and the lowest in <b> `r month(which.min(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>. 
+
+```{r, echo=FALSE}
+p.srate
+```
+</details>
+
+<br />

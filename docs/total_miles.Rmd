@@ -2,6 +2,15 @@
 title: "Total Miles"
 ---
 
+```{r, include=FALSE}
+p.miles <- ggplot(df.miles) +
+  geom_line(aes(x=date, y=miles), color="grey20") +
+  scale_y_continuous(limits=c(0,1.1*max(df.miles$miles)), labels=comma) +
+  labs(x="Date", y="Monthly Miles") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10))
+```
+
 The plot below shows the number of miles driven per month for all vehicles over this period.  Note that gaps in the line chart represent months with no data; in some cases this was because we didn't purchase gas during that month and in others it is because gas receipts were lost.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
