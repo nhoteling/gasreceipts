@@ -18,9 +18,9 @@ library(forecast)
 ```
 
 ```{r, include=FALSE}
-df.cav <- read.table("data/cavalier.csv",sep=",",header=TRUE,fill=TRUE)
-df.cor <- read.table("data/corolla.csv",sep=",",header=TRUE,fill=TRUE)
-df.rav <- read.table("data/rav4.csv",sep=",",header=TRUE,fill=TRUE)
+df.cav <- read.table("../data/cavalier.csv",sep=",",header=TRUE,fill=TRUE)
+df.cor <- read.table("../data/corolla.csv",sep=",",header=TRUE,fill=TRUE)
+df.rav <- read.table("../data/rav4.csv",sep=",",header=TRUE,fill=TRUE)
 
 df.cav$car <- "cav"
 df.cor$car <- "cor"
@@ -295,7 +295,7 @@ p.smileage
 df.rate <- df.miles
 
 # Read file from eia.gov
-df.gas <- read.csv("data/U.S._All_Grades_All_Formulations_Retail_Gasoline_Prices_Monthly.csv",
+df.gas <- read.csv("../data/U.S._All_Grades_All_Formulations_Retail_Gasoline_Prices_Monthly.csv",
                    skip = 5, header=FALSE) %>%
   mutate(date=my(V1)) %>% rename(mrate=V2) %>% select(date,mrate) %>%
   filter(date >= min(df.rate$date))
