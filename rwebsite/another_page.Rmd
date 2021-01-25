@@ -1,5 +1,0 @@
----
-title: "Another Page"
----
-
-Here is another page.
