@@ -4,6 +4,8 @@ navbar:
   left:
     - text: "Total Miles"
       href: total_miles.html
+    - text: "Gas Mileage"
+      href: gas_mileage.html
 output_dir: "."
 output:
   html_document:

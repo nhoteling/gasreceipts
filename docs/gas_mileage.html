@@ -11,7 +11,7 @@
 
 
 
-<title>Total Miles</title>
+<title>Gas Mileage</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -299,17 +299,24 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Total Miles</h1>
+<h1 class="title toc-ignore">Gas Mileage</h1>
 
 </div>
 
 
-<p>The plot below shows the number of miles driven per month for all vehicles over this period. Note that gaps in the line chart represent months with no data; in some cases this was because we didn’t purchase gas during that month and in others it is because gas receipts were lost.</p>
-<p><img src="total_miles_files/figure-html/unnamed-chunk-1-1.png" width="768" /></p>
+<p>The plot below shows the monthly gas mileage for each vehicle over this span. Each data point represents the monthly aggregate for a particular vehicle, and the curves are smoothed lines obtained from a time-series decomposition.</p>
+<p><img src="gas_mileage_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
+<details>
+<p><summary> <b> Details: Gas Mileage </b> </summary> <br /> These histograms compare the monthly gas mileage aggregates to values quoted on <a href="https://www.fueleconomy.gov/" class="uri">https://www.fueleconomy.gov/</a> for each vehicle.</p>
+<p><img src="gas_mileage_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</details>
 <details>
 <p><summary> <b> Details: Seasonality </b> </summary></p>
-<p><br /> There are some seasonal patterns in the number of miles driven over the course of the year.</p>
-<img src="total_miles_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+<p><br /> Seasonal fluctuations in gas mileage were determined from a time series decomposition. The values vary for each vehicle:<br />
+- For the <b>Cavalier</b> the magnitude is <b>2.9 mpg</b><br />
+- For the <b>Corolla</b> the magnitude is <b>6.8 mpg</b><br />
+- For the <b>RAV4</b> the magnitude is <b>8.2 mpg</b></p>
+<img src="gas_mileage_files/figure-html/unnamed-chunk-8-1.png" width="672" />
 </details>
 <p><br /></p>
 
