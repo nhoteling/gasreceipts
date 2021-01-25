@@ -1,0 +1,13 @@
+name: "Gas Receipts"
+navbar:
+  title: "HOME"
+  left:
+    - text: "Total Miles"
+      href: total_miles.html
+output_dir: "."
+output:
+  html_document:
+    theme: yeti
+    highlight: textmate
+#    include:
+#      after_body: _footer.html

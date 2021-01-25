@@ -1,0 +1,362 @@
+---
+title: "Analysis of Gas Receipts"
+author: "Nathan Hoteling"
+date: "`r format(Sys.time(), '%B %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+library(reshape2)
+library(scales)
+
+library(forecast)
+```
+
+```{r, include=FALSE}
+df.cav <- read.table("data/cavalier.csv",sep=",",header=TRUE,fill=TRUE)
+df.cor <- read.table("data/corolla.csv",sep=",",header=TRUE,fill=TRUE)
+df.rav <- read.table("data/rav4.csv",sep=",",header=TRUE,fill=TRUE)
+
+df.cav$car <- "cav"
+df.cor$car <- "cor"
+df.rav$car <- "rav"
+
+df.cars <- rbind(df.cav, df.cor, df.rav)
+
+# Function to fill in monthly data where no monthly data exist
+get_missingmonths <- function(df) {
+  dfx <- data.frame(date = seq.Date(from = min(df$date, na.rm=TRUE), 
+               to = max(df$date, na.rm=TRUE), 
+               by="month")) %>%
+    left_join(df, by="date")
+  return(dfx)
+}
+```
+
+
+```{r, include=FALSE}
+# aggregate data by month
+df.bymonth <- df.cars %>% 
+  group_by(date = floor_date(ymd(Date), unit="month")) %>%
+  summarise(miles = sum(miles), cost=sum(cost), rate = mean(rate), gal=sum(gal)) 
+
+
+# Fill in gaps
+df.miles <- get_missingmonths(df.bymonth)
+
+p.miles <- ggplot(df.miles) +
+  geom_line(aes(x=date, y=miles), color="grey20") +
+  scale_y_continuous(limits=c(0,1.1*max(df.miles$miles)), labels=comma) +
+  labs(x="Date", y="Monthly Miles") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10))
+
+# interval, for use below
+t <- interval(min(df.bymonth$date, na.rm=TRUE), max(df.bymonth$date, na.rm=TRUE))
+tlen <- time_length(t, unit="year")
+avg_miles <- sum(df.bymonth$miles)/tlen
+avg_cost <- sum(df.bymonth$cost)/tlen
+tot_miles <- sum(df.bymonth$miles)
+tot_cost <- sum(df.bymonth$cost)
+```
+
+<br />
+
+This analysis provides a summary of data collected from gas receipts for all vehicles I have owned from <b> `r format(min(df.bymonth$date, na.rm=TRUE), "%B %Y")` </b> to <b> `r format(max(df.bymonth$date, na.rm=TRUE), "%B %Y")`</b>, a span of <b> `r format(tlen, digits=1,nsmall=1)` </b> years.  Over this time period we drove a total of <b> `r format(tot_miles, digits=0,nsmal=0, scientific=FALSE, big.mark=",")` </b> miles and spent <b> `r dollar(tot_cost)` </b> on gas.
+
+<br />
+
+## Total Miles
+
+The plot below shows the number of miles driven per month for all vehicles over this period.  Note that gaps in the line chart represent months with no data; in some cases this was because we didn't purchase gas during that month and in others it is because gas receipts were lost.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
+p.miles
+```
+
+<details>
+<summary> <b> Details: Seasonality </b> </summary>
+
+```{r, include=FALSE}
+
+# Create a timeseries object
+ts.miles <- na.interp(ts(df.miles$miles, start = c(2005,4),frequency=12))
+fc.miles <- decompose(ts.miles)
+df.miles$trend <- as.numeric(fc.miles$trend)
+df.miles$seasonal <- as.numeric(fc.miles$seasonal)
+df.miles$cor <- as.numeric(fc.miles$x) - as.numeric(fc.miles$seasonal)
+
+# 
+df.smiles <- df.miles %>% group_by(month=month(date, label=TRUE, abbr=TRUE)) %>% 
+  summarise(seasonal=mean(seasonal, na.rm=TRUE)) %>%
+  mutate(month = as.factor(month))
+
+p.smiles <- ggplot(df.smiles) +
+  geom_point(aes(x=month, y=seasonal), size=4, alpha=0.8) +
+  geom_line(aes(x=month, y=seasonal, group=1), size=1, alpha=0.2) + 
+  labs(x="Month", y="Difference in miles driven") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10))
+```
+
+<br />
+There are some seasonal patterns in the number of miles driven over the course of the year. 
+
+```{r, echo=FALSE}
+p.smiles
+```
+</details>
+
+<br />
+
+## Gas Mileage
+
+```{r, include=FALSE, message=FALSE, echo=FALSE}
+#
+# NOT INCLUDED
+# time series analysis of total miles
+#
+
+# Create a timeseries object
+first.year <- year(min(df.miles$date))
+first.month <- month(min(df.miles$date))
+
+# Create a time series object
+ts.miles <- na.interp(ts(df.miles$miles, start = c(first.year,first.month),frequency=12))
+dcmp.a <- decompose(ts.miles, "additive")
+dcmp.m <- decompose(ts.miles, "multiplicative")
+
+df.miles$trend <- dcmp.a$trend
+
+p.mileage <- ggplot(df.miles) +
+  geom_point(aes(x=date, y=miles), color="grey75", size=2, alpha=0.6) +
+  geom_line(aes(x=date, y=trend), color="indianred", size=2, alpha=0.8) +
+  scale_y_continuous(limits=c(0,1.1*max(df.miles$miles))) +
+  labs(x="Date", y="Monthly Miles") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10))
+```
+
+```{r, message=FALSE, include=FALSE, warning=FALSE}
+p.mileage
+```
+
+
+The plot below shows the monthly gas mileage for each vehicle over this span.  Each data point represents the monthly aggregate for a particular vehicle, and the curves are smoothed lines obtained from a time-series decomposition.
+
+```{r, echo=FALSE, include=FALSE, message=FALSE, warning=FALSE}
+# Aggregate by date & car, get mean mileage & gas price
+df.grp <- df.cars %>% 
+  group_by(date = floor_date(ymd(Date), unit="month"), car) %>%
+  summarise(mileage = sum(miles)/sum(gal),
+            rate = mean(rate), miles=sum(miles), cost=sum(cost)) 
+
+
+# Fill in missing months
+df.cv <- get_missingmonths(df.grp[ df.grp$car == "cav", ]) %>% mutate(car = "cav")
+df.cr <- get_missingmonths(df.grp[ df.grp$car == "cor", ]) %>% mutate(car = "cor")
+df.rv <- get_missingmonths(df.grp[ df.grp$car == "rav", ]) %>% mutate(car = "rav")
+
+# Create a timeseries objects
+ts.cav <- na.interp(ts(df.cv$mileage[ df.cv$car=="cav" ], 
+                       start = c(2005,4),frequency=12))
+ts.cor <- na.interp(ts(df.cr$mileage[ df.cr$car=="cor" ], 
+                       start = c(2008,11),frequency=12))
+ts.rav <- na.interp(ts(df.rv$mileage[ df.rv$car=="rav" ], 
+                       start = c(2018,7),frequency=12))
+
+# Time series decomposition
+fc.cav <- decompose(ts.cav, type="additive")
+fc.cor <- decompose(ts.cor, type="additive")
+fc.rav <- decompose(ts.rav, type="additive")
+
+# Add time series results to dataframes
+df.cv <- df.cv %>% mutate(trend = as.numeric(fc.cav$trend),
+                          seasonal = as.numeric(fc.cav$seasonal),
+                          cor = as.numeric(fc.cav$x) - seasonal)
+df.cr <- df.cr %>% mutate(trend = as.numeric(fc.cor$trend),
+                          seasonal = as.numeric(fc.cor$seasonal),
+                          cor = as.numeric(fc.cor$x) - seasonal)
+df.rv <- df.rv %>% mutate(trend = as.numeric(fc.rav$trend),
+                          seasonal = as.numeric(fc.rav$seasonal),
+                          cor = as.numeric(fc.rav$x) - seasonal)
+
+# Merge it all together
+df.mileage <- rbind(df.cv, df.cr, df.rv)
+
+#
+# Plot monthly gas mileage for each vehicle 
+#
+p.mlg2 <- ggplot(df.mileage) + 
+  geom_point(aes(x=date, y=mileage, group=car, color=car), size=1.2, alpha=0.5) + 
+  geom_line(aes(x=date, y=trend, group=car, color=car), size=1.2, alpha=0.8) + 
+  annotate("text",x=as.Date("2006-02-01"),y=34,label="Cavalier",
+           color="#f8988f",size=5,alpha=0.9) +
+  annotate("text",x=as.Date("2010-01-01"),y=37,label="Corolla",
+         color="#74c973",size=5,alpha=0.9) +
+  annotate("text",x=as.Date("2020-01-01"),y=18,label="Rav4",
+         color="#96aff2",size=5,alpha=0.9) +
+  scale_y_continuous(limits = c(15,40)) +
+  labs(x="Date",y="Gas Mileage (mpg)") +
+  theme_minimal() +
+  theme(legend.position="none") +
+  theme(axis.text = element_text(size=10))
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
+p.mlg2
+```
+
+<details>
+<summary> <b> Details: Gas Mileage </b> </summary>
+<br />
+These histograms compare the monthly gas mileage aggregates to values quoted on https://www.fueleconomy.gov/ for each vehicle.
+
+```{r, include=FALSE}
+
+df.fuel <- data.frame(car = c("cav","cor","rav"),
+                      city = c(21,27,22),
+                      hwy = c(29,35,28),
+                      cmb = c(24,30,25),
+                      lab = c("Cavalier","Corolla","RAV4"))
+
+p.mlg <- ggplot(df.cars) +
+  geom_segment(data=df.fuel, aes(x=city, xend=city, y=0, yend=50, color=car)) +
+  geom_text(data=df.fuel, aes(x=city, y=45, label="city",color=car), hjust=1.2,alpha=0.8) +
+  geom_text(data=df.fuel, aes(x=hwy, y=45, label="hwy",color=car), hjust=1.2,alpha=0.8) +
+  geom_text(data=df.fuel, aes(x=40, y=40, label=lab,color=car), hjust=1.2, size=5) +
+  geom_segment(data=df.fuel, aes(x=hwy, xend=hwy, y=0, yend=50, color=car)) +
+  geom_histogram( aes(x=mileage, fill=car), bins=40, alpha=0.8) +
+  labs(x="Gas Mileage (mpg)", y="Count") +
+  facet_wrap( ~car, ncol=1) +
+  theme_minimal() +
+  theme(legend.position="none", strip.text = element_blank())
+  
+```
+
+```{r, echo=FALSE}
+p.mlg
+```
+
+
+</details>
+
+<details>
+<summary> <b> Details: Seasonality </b> </summary>
+
+```{r, include=FALSE}
+
+# Time series object was created above
+# Seasonal component to gas mileage
+df.smileage <- df.mileage %>% 
+  group_by(car, month=month(date, label=TRUE, abbr=TRUE)) %>% 
+  summarise(seasonal=mean(seasonal))
+
+p.smileage <- ggplot(df.smileage) + 
+  geom_point(aes(x=month, y=seasonal, group=car, color=car), size=4, alpha=0.8) +
+  geom_line(aes(x=month, y=seasonal, group=car, color=car), size=1, alpha=0.2) + 
+  #scale_y_continuous(limits = c(15,40)) +
+  labs(x="Month",y="Gas Mileage (mpg)") +
+  theme_minimal() +
+  theme(legend.position="none",axis.text = element_text(size=10))
+
+diffcav <- max(df.smileage$seasonal[df.smileage$car == "cav"]) - 
+           min(df.smileage$seasonal[df.smileage$car == "cav"])
+diffcor <- max(df.smileage$seasonal[df.smileage$car == "cor"]) - 
+           min(df.smileage$seasonal[df.smileage$car == "cor"])
+diffrav <- max(df.smileage$seasonal[df.smileage$car == "rav"]) - 
+           min(df.smileage$seasonal[df.smileage$car == "rav"])
+
+```
+
+<br />
+Seasonal fluctuations in gas mileage were determined from a time series decomposition.  The values vary for each vehicle:  
+- For the <b>Cavalier</b> the magnitude is  <b>`r format(diffcav,digits=1,nsmall=1)` mpg</b>  
+- For the <b>Corolla</b> the magnitude is <b>`r format(diffcor,digits=1,nsmall=1)` mpg</b>   
+- For the <b>RAV4</b> the magnitude is <b>`r format(diffrav,digits=1,nsmall=1)` mpg</b>   
+
+```{r, echo=FALSE}
+p.smileage
+```
+</details>
+
+<br />
+
+## Gas Prices
+
+
+```{r, include=FALSE, eval=TRUE, warning=FALSE}
+# Gas prices
+df.rate <- df.miles
+
+# Read file from eia.gov
+df.gas <- read.csv("data/U.S._All_Grades_All_Formulations_Retail_Gasoline_Prices_Monthly.csv",
+                   skip = 5, header=FALSE) %>%
+  mutate(date=my(V1)) %>% rename(mrate=V2) %>% select(date,mrate) %>%
+  filter(date >= min(df.rate$date))
+
+# Combine
+df.rate <- df.rate %>% left_join(df.gas)
+
+#
+# Plot gas prices over time
+#
+p.rate <- ggplot(df.rate) +
+  geom_segment(aes(x=date, xend=date, y=rate, yend=mrate), size=0.3,color="grey75",alpha=0.7) +
+  geom_line(aes(x=date, y=mrate), size=1.2, color="grey75", alpha=0.7) +
+  geom_point(aes(x=date, y=rate), color="grey25", size=1.0, alpha=0.8) +
+  #geom_line(aes(x=date, y=cor), color="indianred", size=1.2, alpha=0.8) +
+  scale_y_continuous(labels=dollar_format()) +
+  labs(x="Date", y="Gas Price") +
+  theme_minimal()
+
+```
+
+The plot below compares what we paid for gas with the national average monthly gas price according to https://www.eia.gov/.  Each data point represents the monthly aggregate for all gas purchased during a particular month, and the trendline indicates the national average.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
+p.rate
+```
+
+<details>
+<summary> <b> Details: Seasonality </b> </summary>
+
+```{r, include=FALSE}
+
+# Create a timeseries object
+ts.rate <- na.interp(ts(df.rate$rate, start = c(2005,4),frequency=12))
+fc.rate <- decompose(ts.rate)
+df.rate$trend <- as.numeric(fc.rate$trend)
+df.rate$seasonal <- as.numeric(fc.rate$seasonal)
+df.rate$cor <- as.numeric(fc.rate$x) - as.numeric(fc.rate$seasonal)
+
+# 
+df.rt <- df.rate %>% group_by(month=month(date, label=TRUE, abbr=TRUE)) %>% 
+  summarise(seasonal=mean(seasonal, na.rm=TRUE)) %>%
+  mutate(month = as.factor(month))
+
+p.srate <- ggplot(df.rt) +
+  geom_point(aes(x=month, y=seasonal), size=4, alpha=0.8) +
+  geom_line(aes(x=month, y=seasonal, group=1), size=1, alpha=0.2) + 
+  scale_y_continuous(labels=dollar_format()) +
+  labs(x="Month", y="Change in gas price") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10))
+```
+
+<br />
+The seasonal fluctuations in the gas prices amount to <b> `r dollar(max(df.rt$seasonal)-min(df.rt$seasonal)) ` </b>, with the peak price in <b> `r month(which.max(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>, and the lowest in <b> `r month(which.min(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>. 
+
+```{r, echo=FALSE}
+p.srate
+```
+</details>
+
+<br />
+
+
