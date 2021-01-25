@@ -2,4 +2,45 @@
 title: "Total Miles"
 ---
 
-Total miles here
+## Total Miles
+
+The plot below shows the number of miles driven per month for all vehicles over this period.  Note that gaps in the line chart represent months with no data; in some cases this was because we didn't purchase gas during that month and in others it is because gas receipts were lost.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
+p.miles
+```
+
+<details>
+<summary> <b> Details: Seasonality </b> </summary>
+
+```{r, include=FALSE}
+
+# Create a timeseries object
+ts.miles <- na.interp(ts(df.miles$miles, start = c(2005,4),frequency=12))
+fc.miles <- decompose(ts.miles)
+df.miles$trend <- as.numeric(fc.miles$trend)
+df.miles$seasonal <- as.numeric(fc.miles$seasonal)
+df.miles$cor <- as.numeric(fc.miles$x) - as.numeric(fc.miles$seasonal)
+
+# 
+df.smiles <- df.miles %>% group_by(month=month(date, label=TRUE, abbr=TRUE)) %>% 
+  summarise(seasonal=mean(seasonal, na.rm=TRUE)) %>%
+  mutate(month = as.factor(month))
+
+p.smiles <- ggplot(df.smiles) +
+  geom_point(aes(x=month, y=seasonal), size=4, alpha=0.8) +
+  geom_line(aes(x=month, y=seasonal, group=1), size=1, alpha=0.2) + 
+  labs(x="Month", y="Difference in miles driven") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10))
+```
+
+<br />
+There are some seasonal patterns in the number of miles driven over the course of the year. 
+
+```{r, echo=FALSE}
+p.smiles
+```
+</details>
+
+<br />
