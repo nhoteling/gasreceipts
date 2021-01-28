@@ -13,6 +13,7 @@ library(dplyr)
 library(lubridate)
 library(reshape2)
 library(scales)
+library(plotly)
 
 library(forecast)
 ```
@@ -76,7 +77,7 @@ This analysis provides a summary of data collected from gas receipts for all veh
 The plot below shows the number of miles driven per month for all vehicles over this period.  Note that gaps in the line chart represent months with no data; in some cases this was because we didn't purchase gas during that month and in others it is because gas receipts were lost.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
-p.miles
+ggplotly(p.miles)
 ```
 
 <details>
@@ -99,7 +100,7 @@ df.smiles <- df.miles %>% group_by(month=month(date, label=TRUE, abbr=TRUE)) %>%
 p.smiles <- ggplot(df.smiles) +
   geom_point(aes(x=month, y=seasonal), size=4, alpha=0.8) +
   geom_line(aes(x=month, y=seasonal, group=1), size=1, alpha=0.2) + 
-  labs(x="Month", y="Difference in miles driven") +
+  labs(x="Month", y="Variation in miles driven") +
   theme_minimal() +
   theme(axis.text = element_text(size=10))
 ```
@@ -108,7 +109,7 @@ p.smiles <- ggplot(df.smiles) +
 There are some seasonal patterns in the number of miles driven over the course of the year. 
 
 ```{r, echo=FALSE}
-p.smiles
+ggplotly(p.smiles)
 ```
 </details>
 
@@ -209,7 +210,7 @@ p.mlg2 <- ggplot(df.mileage) +
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
-p.mlg2
+ggplotly(p.mlg2)
 ```
 
 <details>
@@ -320,7 +321,7 @@ p.rate <- ggplot(df.rate) +
 The plot below compares what we paid for gas with the national average monthly gas price according to https://www.eia.gov/.  Each data point represents the monthly aggregate for all gas purchased during a particular month, and the trendline indicates the national average.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
-p.rate
+ggplotly(p.rate)
 ```
 
 <details>
