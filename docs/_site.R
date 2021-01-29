@@ -1,7 +1,7 @@
 ## packages I want loaded for all pages of my site
 suppressPackageStartupMessages({
-  #library(tidyverse)
-  #library(stringr)
+  library(tidyverse)
+  library(stringr)
   
   library(ggplot2)
   library(dplyr)

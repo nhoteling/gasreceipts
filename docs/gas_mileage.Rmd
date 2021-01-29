@@ -7,7 +7,7 @@ title: "Gas Mileage"
 # NOT INCLUDED
 # time series analysis of total miles
 #
-
+source("_site.R")
 # Create a timeseries object
 first.year <- year(min(df.miles$date))
 first.month <- month(min(df.miles$date))
