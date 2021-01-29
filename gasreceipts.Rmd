@@ -309,7 +309,7 @@ df.rate <- df.rate %>% left_join(df.gas)
 #
 p.rate <- ggplot(df.rate) +
   geom_segment(aes(x=date, xend=date, y=rate, yend=mrate), size=0.3,color="grey75",alpha=0.7) +
-  geom_line(aes(x=date, y=mrate), size=1.2, color="grey75", alpha=0.7) +
+  geom_line(aes(x=date, y=mrate), size=1.0, color="grey75", alpha=0.7) +
   geom_point(aes(x=date, y=rate), color="grey25", size=1.0, alpha=0.8) +
   #geom_line(aes(x=date, y=cor), color="indianred", size=1.2, alpha=0.8) +
   scale_y_continuous(labels=dollar_format()) +
