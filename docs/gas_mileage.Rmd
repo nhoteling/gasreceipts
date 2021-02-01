@@ -38,7 +38,7 @@ The plot below shows the monthly gas mileage for each vehicle over this span.  E
 ```{r, echo=FALSE, include=FALSE, message=FALSE, warning=FALSE}
 # Aggregate by date & car, get mean mileage & gas price
 df.grp <- df.cars %>% 
-  group_by(date = floor_date(ymd(Date), unit="month"), car) %>%
+  group_by(date = floor_date(ymd(rmT(Date)), unit="month"), car) %>%
   summarise(mileage = sum(miles)/sum(gal),
             rate = mean(rate), miles=sum(miles), cost=sum(cost)) 
 
@@ -147,7 +147,7 @@ p.smileage <- ggplot(df.smileage) +
   geom_point(aes(x=month, y=seasonal, group=car, color=car), size=4, alpha=0.8) +
   geom_line(aes(x=month, y=seasonal, group=car, color=car), size=1, alpha=0.2) + 
   #scale_y_continuous(limits = c(15,40)) +
-  labs(x="Month",y="Gas Mileage (mpg)") +
+  labs(x="Month",y="Seasonal change in gas mileage (mpg)") +
   theme_minimal() +
   theme(legend.position="none",axis.text = element_text(size=10))
 

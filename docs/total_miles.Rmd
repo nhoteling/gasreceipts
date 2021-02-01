@@ -37,7 +37,7 @@ df.smiles <- df.miles %>% group_by(month=month(date, label=TRUE, abbr=TRUE)) %>%
 p.smiles <- ggplot(df.smiles) +
   geom_point(aes(x=month, y=seasonal), size=4, alpha=0.8) +
   geom_line(aes(x=month, y=seasonal, group=1), size=1, alpha=0.2) + 
-  labs(x="Month", y="Difference in miles driven") +
+  labs(x="Month", y="Seasonal change miles driven") +
   theme_minimal() +
   theme(axis.text = element_text(size=10))
 ```

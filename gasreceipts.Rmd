@@ -19,15 +19,19 @@ library(forecast)
 ```
 
 ```{r, include=FALSE}
-df.cav <- read.table("data/cavalier.csv",sep=",",header=TRUE,fill=TRUE)
-df.cor <- read.table("data/corolla.csv",sep=",",header=TRUE,fill=TRUE)
-df.rav <- read.table("data/rav4.csv",sep=",",header=TRUE,fill=TRUE)
+df.cav <- read.table("data/cavalier_2001.csv",sep=",",header=TRUE,fill=TRUE)
+df.cor <- read.table("data/corolla_2009.csv",sep=",",header=TRUE,fill=TRUE)
+df.rav <- read.table("data/rav4_2018.csv",sep=",",header=TRUE,fill=TRUE)
 
 df.cav$car <- "cav"
 df.cor$car <- "cor"
 df.rav$car <- "rav"
 
 df.cars <- rbind(df.cav, df.cor, df.rav)
+
+# Function to remove "T" from date string
+# --> date strings are appended with "T" to make them Excel-safe
+rmT <- function(fstr) { stringr::str_replace(fstr, "T", "") }
 
 # Function to fill in monthly data where no monthly data exist
 get_missingmonths <- function(df) {
@@ -43,7 +47,7 @@ get_missingmonths <- function(df) {
 ```{r, include=FALSE}
 # aggregate data by month
 df.bymonth <- df.cars %>% 
-  group_by(date = floor_date(ymd(Date), unit="month")) %>%
+  group_by(date = floor_date(ymd(rmT(Date)), unit="month")) %>%
   summarise(miles = sum(miles), cost=sum(cost), rate = mean(rate), gal=sum(gal)) 
 
 
@@ -100,7 +104,7 @@ df.smiles <- df.miles %>% group_by(month=month(date, label=TRUE, abbr=TRUE)) %>%
 p.smiles <- ggplot(df.smiles) +
   geom_point(aes(x=month, y=seasonal), size=4, alpha=0.8) +
   geom_line(aes(x=month, y=seasonal, group=1), size=1, alpha=0.2) + 
-  labs(x="Month", y="Variation in miles driven") +
+  labs(x="Month", y="Seasonal change in miles driven") +
   theme_minimal() +
   theme(axis.text = element_text(size=10))
 ```
@@ -153,7 +157,7 @@ The plot below shows the monthly gas mileage for each vehicle over this span.  E
 ```{r, echo=FALSE, include=FALSE, message=FALSE, warning=FALSE}
 # Aggregate by date & car, get mean mileage & gas price
 df.grp <- df.cars %>% 
-  group_by(date = floor_date(ymd(Date), unit="month"), car) %>%
+  group_by(date = floor_date(ymd(rmT(Date)), unit="month"), car) %>%
   summarise(mileage = sum(miles)/sum(gal),
             rate = mean(rate), miles=sum(miles), cost=sum(cost)) 
 
@@ -262,7 +266,7 @@ p.smileage <- ggplot(df.smileage) +
   geom_point(aes(x=month, y=seasonal, group=car, color=car), size=4, alpha=0.8) +
   geom_line(aes(x=month, y=seasonal, group=car, color=car), size=1, alpha=0.2) + 
   #scale_y_continuous(limits = c(15,40)) +
-  labs(x="Month",y="Gas Mileage (mpg)") +
+  labs(x="Month",y="Seasonal change in gas mileage (mpg)") +
   theme_minimal() +
   theme(legend.position="none",axis.text = element_text(size=10))
 
@@ -345,7 +349,7 @@ p.srate <- ggplot(df.rt) +
   geom_point(aes(x=month, y=seasonal), size=4, alpha=0.8) +
   geom_line(aes(x=month, y=seasonal, group=1), size=1, alpha=0.2) + 
   scale_y_continuous(labels=dollar_format()) +
-  labs(x="Month", y="Change in gas price") +
+  labs(x="Month", y="Seasonal change in gas price") +
   theme_minimal() +
   theme(axis.text = element_text(size=10))
 ```

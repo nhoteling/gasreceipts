@@ -11,7 +11,7 @@
 
 
 
-<title>Gas Prices</title>
+<title>Methods</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -305,19 +305,20 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Gas Prices</h1>
+<h1 class="title toc-ignore">Methods</h1>
 
 </div>
 
 
-<p>The plot below compares what we paid for gas with the national average monthly gas price according to <a href="https://www.eia.gov/" class="uri">https://www.eia.gov/</a>. Each data point represents the monthly aggregate for all gas purchased during a particular month, and the trendline indicates the national average.</p>
-<p><img src="gas_prices_files/figure-html/unnamed-chunk-2-1.png" width="768" /></p>
-<details>
-<p><summary> <b> Details: Seasonality </b> </summary></p>
-<p><br /> The seasonal fluctuations in the gas prices amount to <b> $0.44 </b>, with the peak price in <b> July </b>, and the lowest in <b> February </b>.</p>
-<img src="gas_prices_files/figure-html/unnamed-chunk-4-1.png" width="672" />
-</details>
-<p><br /></p>
+<ul>
+<li>The data used in this analysis was recorded from gas receipts collected by me and are available <a href="https://github.com/nhoteling/gasreceipts/tree/main/data">here</a><br />
+</li>
+<li>All analysis was carried out with R<br />
+</li>
+<li>Seasonal patterns were determined from a time series decomposition via the <code>forecast</code> <a href="https://www.rdocumentation.org/packages/forecast/versions/8.13">package</a><br />
+</li>
+<li>This website was built with <code>RMarkdown</code> and hosted via GitHub Pages, based on the tutorial <a href="https://jules32.github.io/rmarkdown-website-tutorial/">here</a> and <a href="https://bookdown.org/yihui/rmarkdown/rmarkdown-site.html">Chapter 10</a> of <b>RMarkdown: The Definitive Guide</b>; also see <a href="https://www.emilyzabor.com/tutorials/rmarkdown_websites_tutorial.html#R_Markdown_website_basics">here</a></li>
+</ul>
 
 
 

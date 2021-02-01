@@ -13,15 +13,19 @@ suppressPackageStartupMessages({
 })
 
 ## variables I need for my site 
-df.cav <- read.table("../data/cavalier.csv",sep=",",header=TRUE,fill=TRUE)
-df.cor <- read.table("../data/corolla.csv",sep=",",header=TRUE,fill=TRUE)
-df.rav <- read.table("../data/rav4.csv",sep=",",header=TRUE,fill=TRUE)
+df.cav <- read.table("../data/cavalier_2001.csv",sep=",",header=TRUE,fill=TRUE)
+df.cor <- read.table("../data/corolla_2009.csv",sep=",",header=TRUE,fill=TRUE)
+df.rav <- read.table("../data/rav4_2018.csv",sep=",",header=TRUE,fill=TRUE)
 
 df.cav$car <- "cav"
 df.cor$car <- "cor"
 df.rav$car <- "rav"
 
 df.cars <- rbind(df.cav, df.cor, df.rav)
+
+# Function to remove "T" from date string
+# --> date strings are appended with "T" to make them Excel-safe
+rmT <- function(fstr) { stringr::str_replace(fstr, "T", "") }
 
 # Function to fill in monthly data where no monthly data exist
 get_missingmonths <- function(df) {
@@ -41,7 +45,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #
 # aggregate data by month
 df.bymonth <- df.cars %>% 
-  group_by(date = floor_date(ymd(Date), unit="month")) %>%
+  group_by(date = floor_date(ymd(rmT(Date)), unit="month")) %>%
   summarise(miles = sum(miles), cost=sum(cost), rate = mean(rate), gal=sum(gal)) 
 # Fill in gaps
 df.miles <- get_missingmonths(df.bymonth)
