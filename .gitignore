@@ -5,6 +5,7 @@ data/*.xlsx
 data/archive
 gasreceipts.html
 R.gitignore
+.DS_Store
 
 # History files
 .Rhistory

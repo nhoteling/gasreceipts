@@ -322,7 +322,7 @@ p.rate <- ggplot(df.rate) +
 
 ```
 
-The plot below compares what we paid for gas with the national average monthly gas price according to https://www.eia.gov/.  Each data point represents the monthly aggregate for all gas purchased during a particular month, and the trendline indicates the national average.
+The plot below compares what we paid for gas with the national average monthly gas price according to the [US Energy Information Administration](https://www.eia.gov/opendata/qb.php?sdid=PET.EMM_EPM0_PTE_NUS_DPG.M).  Each data point represents the monthly aggregate for all gas purchased during a particular month, and the trendline indicates the national average.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
 ggplotly(p.rate)
