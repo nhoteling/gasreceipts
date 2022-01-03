@@ -70,11 +70,12 @@ tot_miles <- sum(df.bymonth$miles)
 tot_cost <- sum(df.bymonth$cost)
 ```
 
-<br />
+<br>
 
 This analysis provides a summary of data collected from gas receipts for all vehicles I have owned from <b> `r format(min(df.bymonth$date, na.rm=TRUE), "%B %Y")` </b> to <b> `r format(max(df.bymonth$date, na.rm=TRUE), "%B %Y")`</b>, a span of <b> `r format(tlen, digits=1,nsmall=1)` </b> years.  Over this time period we drove a total of <b> `r format(tot_miles, digits=0,nsmal=0, scientific=FALSE, big.mark=",")` </b> miles and spent <b> `r dollar(tot_cost)` </b> on gas.
 
-<br />
+<br>
+<br>
 
 ## Total Miles
 
@@ -107,17 +108,27 @@ p.smiles <- ggplot(df.smiles) +
   labs(x="Month", y="Seasonal change in miles driven") +
   theme_minimal() +
   theme(axis.text = element_text(size=10))
+
+pal.smiles <- c("TRUE"="#96aff2", "FALSE"="#f8988f")
+p.smiles2 <- ggplot(df.smiles) +
+  geom_col(aes(x=month, y=seasonal, fill=seasonal>=0)) +
+  scale_fill_manual(values=pal.smiles) +
+  labs(x="Month", y="Seasonal change in miles driven") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10), legend.position="none")
 ```
 
-<br />
+<br>
+
 There are some seasonal patterns in the number of miles driven over the course of the year. 
 
 ```{r, echo=FALSE}
-ggplotly(p.smiles)
+ggplotly(p.smiles2)
 ```
 </details>
 
-<br />
+<br>
+<br>
 
 ## Gas Mileage
 
@@ -211,6 +222,7 @@ p.mlg2 <- ggplot(df.mileage) +
   theme_minimal() +
   theme(legend.position="none") +
   theme(axis.text = element_text(size=10))
+
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
@@ -219,7 +231,7 @@ ggplotly(p.mlg2)
 
 <details>
 <summary> <b> Details: Gas Mileage </b> </summary>
-<br />
+<br>
 These histograms compare the monthly gas mileage aggregates to values quoted on https://www.fueleconomy.gov/ for each vehicle.
 
 ```{r, include=FALSE}
@@ -270,6 +282,17 @@ p.smileage <- ggplot(df.smileage) +
   theme_minimal() +
   theme(legend.position="none",axis.text = element_text(size=10))
 
+p.smileage2 <- ggplot(df.smileage) +
+  geom_col(aes(x=month, y=seasonal, fill=seasonal >=0)) +
+  geom_text(data=df.fuel, aes(x=11.9, y=2.5, label=lab), color="grey50", hjust=1.0, size=5) +
+  facet_wrap(~car, ncol=1) +
+  scale_fill_manual(values=pal.smiles) +
+  labs(x="Month", y="Seasonal change in gas mileage (mpg)") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10), 
+        legend.position="none",
+        strip.text = element_blank())
+
 diffcav <- max(df.smileage$seasonal[df.smileage$car == "cav"]) - 
            min(df.smileage$seasonal[df.smileage$car == "cav"])
 diffcor <- max(df.smileage$seasonal[df.smileage$car == "cor"]) - 
@@ -279,18 +302,21 @@ diffrav <- max(df.smileage$seasonal[df.smileage$car == "rav"]) -
 
 ```
 
-<br />
-Seasonal fluctuations in gas mileage were determined from a time series decomposition.  The values vary for each vehicle:  
-- For the <b>Cavalier</b> the magnitude is  <b>`r format(diffcav,digits=1,nsmall=1)` mpg</b>  
-- For the <b>Corolla</b> the magnitude is <b>`r format(diffcor,digits=1,nsmall=1)` mpg</b>   
-- For the <b>RAV4</b> the magnitude is <b>`r format(diffrav,digits=1,nsmall=1)` mpg</b>   
+<br>
 
+Seasonal fluctuations in gas mileage were determined from a time series decomposition.  The values vary for each vehicle:
+<ul>
+<li>For the <b>Cavalier</b> the magnitude is  <b>`r format(diffcav,digits=1,nsmall=1)` mpg</b></li>
+<li>For the <b>Corolla</b> the magnitude is <b>`r format(diffcor,digits=1,nsmall=1)` mpg</b></li>
+<li>For the <b>RAV4</b> the magnitude is <b>`r format(diffrav,digits=1,nsmall=1)` mpg</b></li>
+</ul>
 ```{r, echo=FALSE}
-p.smileage
+p.smileage2
 ```
 </details>
 
-<br />
+<br>
+<br>
 
 ## Gas Prices
 
@@ -300,7 +326,7 @@ p.smileage
 df.rate <- df.miles
 
 # Read file from eia.gov
-df.gas <- read.csv("data/U.S._All_Grades_All_Formulations_Retail_Gasoline_Prices_Monthly.csv",
+df.gas <- read.csv("data/U.S._All_Grades_All_Formulations_Retail_Gasoline_Prices_Monthly_Dec2021.csv",
                    skip = 5, header=FALSE) %>%
   mutate(date=my(V1)) %>% rename(mrate=V2) %>% select(date,mrate) %>%
   filter(date >= min(df.rate$date))
@@ -354,7 +380,7 @@ p.srate <- ggplot(df.rt) +
   theme(axis.text = element_text(size=10))
 ```
 
-<br />
+<br>
 The seasonal fluctuations in the gas prices amount to <b> `r dollar(max(df.rt$seasonal)-min(df.rt$seasonal)) ` </b>, with the peak price in <b> `r month(which.max(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>, and the lowest in <b> `r month(which.min(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>. 
 
 ```{r, echo=FALSE}
@@ -362,6 +388,9 @@ p.srate
 ```
 </details>
 
-<br />
+<br>
+<br>
+<hr>
+<br>
 
 
