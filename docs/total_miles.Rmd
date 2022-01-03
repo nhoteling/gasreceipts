@@ -40,13 +40,21 @@ p.smiles <- ggplot(df.smiles) +
   labs(x="Month", y="Seasonal change miles driven") +
   theme_minimal() +
   theme(axis.text = element_text(size=10))
+
+pal.smiles <- c("TRUE"="#96aff2", "FALSE"="#f8988f")
+p.smiles2 <- ggplot(df.smiles) +
+  geom_col(aes(x=month, y=seasonal, fill=seasonal>=0)) +
+  scale_fill_manual(values=pal.smiles) +
+  labs(x="Month", y="Seasonal change in miles driven") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10), legend.position="none")
 ```
 
 <br />
 There are some seasonal patterns in the number of miles driven over the course of the year. 
 
 ```{r, echo=FALSE}
-p.smiles
+p.smiles2
 ```
 </details>
 

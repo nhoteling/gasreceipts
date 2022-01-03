@@ -151,6 +151,18 @@ p.smileage <- ggplot(df.smileage) +
   theme_minimal() +
   theme(legend.position="none",axis.text = element_text(size=10))
 
+pal.smiles <- c("TRUE"="#96aff2", "FALSE"="#f8988f")
+p.smileage2 <- ggplot(df.smileage) +
+  geom_col(aes(x=month, y=seasonal, fill=seasonal >=0)) +
+  geom_text(data=df.fuel, aes(x=11.9, y=2.5, label=lab), color="grey50", hjust=1.0, size=5) +
+  facet_wrap(~car, ncol=1) +
+  scale_fill_manual(values=pal.smiles) +
+  labs(x="Month", y="Seasonal change in gas mileage (mpg)") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10), 
+        legend.position="none",
+        strip.text = element_blank())
+
 diffcav <- max(df.smileage$seasonal[df.smileage$car == "cav"]) - 
            min(df.smileage$seasonal[df.smileage$car == "cav"])
 diffcor <- max(df.smileage$seasonal[df.smileage$car == "cor"]) - 
@@ -167,7 +179,7 @@ Seasonal fluctuations in gas mileage were determined from a time series decompos
 - For the <b>RAV4</b> the magnitude is <b>`r format(diffrav,digits=1,nsmall=1)` mpg</b>   
 
 ```{r, echo=FALSE}
-p.smileage
+p.smileage2
 ```
 </details>
 

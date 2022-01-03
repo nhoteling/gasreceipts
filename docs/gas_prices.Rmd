@@ -7,7 +7,7 @@ title: "Gas Prices"
 df.rate <- df.miles
 
 # Read file from eia.gov
-df.gas <- read.csv("../data/U.S._All_Grades_All_Formulations_Retail_Gasoline_Prices_Monthly.csv",
+df.gas <- read.csv("../data/U.S._All_Grades_All_Formulations_Retail_Gasoline_Prices_Monthly_Dec2021.csv",
                    skip = 5, header=FALSE) %>%
   mutate(date=my(V1)) %>% rename(mrate=V2) %>% select(date,mrate) %>%
   filter(date >= min(df.rate$date))
@@ -59,14 +59,25 @@ p.srate <- ggplot(df.rt) +
   labs(x="Month", y="Seasonal change in gas price") +
   theme_minimal() +
   theme(axis.text = element_text(size=10))
+
+pal.smiles <- c("TRUE"="#96aff2", "FALSE"="#f8988f")
+p.srate2 <- ggplot(df.rt) +
+  geom_col(aes(x=month, y=seasonal, fill=seasonal>=0)) +
+  scale_y_continuous(labels=dollar_format()) +
+  scale_fill_manual(values=pal.smiles) +
+  labs(x="Month", y="Seasonal change in gas price") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10), 
+        legend.position="none",
+        strip.text = element_blank())
 ```
 
 <br />
 The seasonal fluctuations in the gas prices amount to <b> `r dollar(max(df.rt$seasonal)-min(df.rt$seasonal)) ` </b>, with the peak price in <b> `r month(which.max(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>, and the lowest in <b> `r month(which.min(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>. 
 
 ```{r, echo=FALSE}
-p.srate
+p.srate2
 ```
 </details>
 
-<br />
+<br>

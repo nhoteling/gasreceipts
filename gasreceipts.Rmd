@@ -70,6 +70,7 @@ tot_miles <- sum(df.bymonth$miles)
 tot_cost <- sum(df.bymonth$cost)
 ```
 
+<hr>
 <br>
 
 This analysis provides a summary of data collected from gas receipts for all vehicles I have owned from <b> `r format(min(df.bymonth$date, na.rm=TRUE), "%B %Y")` </b> to <b> `r format(max(df.bymonth$date, na.rm=TRUE), "%B %Y")`</b>, a span of <b> `r format(tlen, digits=1,nsmall=1)` </b> years.  Over this time period we drove a total of <b> `r format(tot_miles, digits=0,nsmal=0, scientific=FALSE, big.mark=",")` </b> miles and spent <b> `r dollar(tot_cost)` </b> on gas.
@@ -378,13 +379,23 @@ p.srate <- ggplot(df.rt) +
   labs(x="Month", y="Seasonal change in gas price") +
   theme_minimal() +
   theme(axis.text = element_text(size=10))
+
+p.srate2 <- ggplot(df.rt) +
+  geom_col(aes(x=month, y=seasonal, fill=seasonal>=0)) +
+  scale_y_continuous(labels=dollar_format()) +
+  scale_fill_manual(values=pal.smiles) +
+  labs(x="Month", y="Seasonal change in gas price") +
+  theme_minimal() +
+  theme(axis.text = element_text(size=10), 
+        legend.position="none",
+        strip.text = element_blank())
 ```
 
 <br>
 The seasonal fluctuations in the gas prices amount to <b> `r dollar(max(df.rt$seasonal)-min(df.rt$seasonal)) ` </b>, with the peak price in <b> `r month(which.max(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>, and the lowest in <b> `r month(which.min(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>. 
 
 ```{r, echo=FALSE}
-p.srate
+p.srate2
 ```
 </details>
 
