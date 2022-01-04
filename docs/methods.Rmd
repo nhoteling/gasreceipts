@@ -2,7 +2,9 @@
 title: "Methods"
 ---
 
-- The data used in this analysis was recorded from gas receipts collected by me and are available [here](https://github.com/nhoteling/gasreceipts/tree/main/data)  
-- All analysis was carried out with R  
-- Seasonal patterns were determined from a time series decomposition via the `forecast` [package](https://www.rdocumentation.org/packages/forecast/versions/8.13)  
-- This website was built with `RMarkdown` and hosted via GitHub Pages, based on the tutorial [here](https://jules32.github.io/rmarkdown-website-tutorial/) and [Chapter 10](https://bookdown.org/yihui/rmarkdown/rmarkdown-site.html) of <b>RMarkdown: The Definitive Guide</b>; also see [here](https://www.emilyzabor.com/tutorials/rmarkdown_websites_tutorial.html#R_Markdown_website_basics)  
+<ul>
+  <li>The data used in this analysis was recorded from gas receipts collected by me and are available [here](https://github.com/nhoteling/gasreceipts/tree/main/data)</li>
+  <li>Seasonal patterns were determined from a time series decomposition via the `forecast` [package](https://www.rdocumentation.org/packages/forecast/versions/8.13)</li>
+  <li>Website built with `rmarkdown` and hosted via GitHub Pages, based on [this](https://jules32.github.io/rmarkdown-website-tutorial/) tutorial; also see [here](https://www.emilyzabor.com/tutorials/rmarkdown_websites_tutorial.html#R_Markdown_website_basics)</li>
+  <li>Code repo is available [here](https://github.com/nhoteling/gasreceipts)</li>
+</ul>

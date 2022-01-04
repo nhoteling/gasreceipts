@@ -133,7 +133,7 @@ p.mlg
 </details>
 
 <details>
-<summary> <b> Details: Seasonality </b> </summary>
+<summary> <b> Details: Seasonal Pattern </b> </summary>
 
 ```{r, include=FALSE}
 

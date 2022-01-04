@@ -18,7 +18,7 @@ p.miles
 ```
 
 <details>
-<summary> <b> Details: Seasonality </b> </summary>
+<summary> <b> Details: Seasonal Pattern </b> </summary>
 
 ```{r, include=FALSE}
 
@@ -50,8 +50,9 @@ p.smiles2 <- ggplot(df.smiles) +
   theme(axis.text = element_text(size=10), legend.position="none")
 ```
 
-<br />
-There are some seasonal patterns in the number of miles driven over the course of the year. 
+<br>
+
+A time-series decomposition of the data above reveals seasonal patterns in the number of miles driven over the course of the year. 
 
 ```{r, echo=FALSE}
 p.smiles2
