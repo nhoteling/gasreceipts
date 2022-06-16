@@ -1,15 +1,7 @@
 name: "Gas Receipts"
 navbar:
-  title: "HOME"
+  title: ""
   left:
-    - text: "Total Miles"
-      href: total_miles.html
-    - text: "Gas Mileage"
-      href: gas_mileage.html
-    - text: "Gas Prices"
-      href: gas_prices.html
-    - text: "Methods"
-      href: methods.html  
 output_dir: "."
 output:
   html_document:

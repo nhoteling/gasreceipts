@@ -16,6 +16,8 @@ library(scales)
 library(plotly)
 
 library(forecast)
+
+GAS_PRICES <- "data/U.S._Regular_All_Formulations_Retail_Gasoline_Prices_Monthly_Jun2022.csv"
 ```
 
 ```{r, include=FALSE}
@@ -52,9 +54,11 @@ df.bymonth <- df.cars %>%
 
 
 # Fill in gaps
-df.miles <- get_missingmonths(df.bymonth)
+df.miles <- get_missingmonths(df.bymonth) %>%
+  mutate(label = paste0("Date: ", format.Date(date, "%Y-%m"),"<br>",
+                        "Miles: ", format(miles, digits=1, big.mark=",")))
 
-p.miles <- ggplot(df.miles) +
+p.miles <- ggplot(df.miles, aes(text=label, group=1)) +
   geom_line(aes(x=date, y=miles), color="grey20") +
   scale_y_continuous(limits=c(0,1.1*max(df.miles$miles)), labels=comma) +
   labs(x="Date", y="Monthly Miles") +
@@ -83,7 +87,7 @@ This analysis provides a summary of data collected from gas receipts for all veh
 The plot below shows the number of miles driven per month for all vehicles over this period.  Note that gaps in the line chart represent months with no data; in some cases this was because we didn't purchase gas during that month and in others it is because gas receipts were lost.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
-ggplotly(p.miles)
+ggplotly(p.miles, tooltip="text")
 ```
 
 <details>
@@ -124,10 +128,12 @@ p.smiles2 <- ggplot(df.smiles) +
 There are some seasonal patterns in the number of miles driven over the course of the year. 
 
 ```{r, echo=FALSE}
-ggplotly(p.smiles2)
+#ggplotly(p.smiles2)
+p.smiles2
 ```
 </details>
 
+<br>
 <br>
 <br>
 
@@ -204,12 +210,14 @@ df.rv <- df.rv %>% mutate(trend = as.numeric(fc.rav$trend),
                           cor = as.numeric(fc.rav$x) - seasonal)
 
 # Merge it all together
-df.mileage <- rbind(df.cv, df.cr, df.rv)
+df.mileage <- rbind(df.cv, df.cr, df.rv) %>%
+  mutate(label = paste0("Date: ", format.Date(date, "%Y-%m"), "<br>",
+                        "Mileage: ", round(mileage, 1)," mpg"))
 
 #
 # Plot monthly gas mileage for each vehicle 
 #
-p.mlg2 <- ggplot(df.mileage) + 
+p.mlg2 <- ggplot(df.mileage, aes(text=label)) + 
   geom_point(aes(x=date, y=mileage, group=car, color=car), size=1.2, alpha=0.5) + 
   geom_line(aes(x=date, y=trend, group=car, color=car), size=1.2, alpha=0.8) + 
   annotate("text",x=as.Date("2006-02-01"),y=34,label="Cavalier",
@@ -227,7 +235,7 @@ p.mlg2 <- ggplot(df.mileage) +
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
-ggplotly(p.mlg2)
+ggplotly(p.mlg2, tooltip="text")
 ```
 
 <details>
@@ -318,6 +326,7 @@ p.smileage2
 
 <br>
 <br>
+<br>
 
 ## Gas Prices
 
@@ -327,18 +336,21 @@ p.smileage2
 df.rate <- df.miles
 
 # Read file from eia.gov
-df.gas <- read.csv("data/U.S._All_Grades_All_Formulations_Retail_Gasoline_Prices_Monthly_Dec2021.csv",
+df.gas <- read.csv(GAS_PRICES,
                    skip = 5, header=FALSE) %>%
   mutate(date=my(V1)) %>% rename(mrate=V2) %>% select(date,mrate) %>%
   filter(date >= min(df.rate$date))
 
 # Combine
-df.rate <- df.rate %>% left_join(df.gas)
+df.rate <- df.rate %>% left_join(df.gas) %>%
+  mutate(label = paste0("Date: ", format.Date(date, "%Y-%m"), "<br>",
+                        "AVG cost: $", round(mrate, 2),"<br>",
+                        "AVG paid: $", round(rate, 2)))
 
 #
 # Plot gas prices over time
 #
-p.rate <- ggplot(df.rate) +
+p.rate <- ggplot(df.rate, aes(text=label, group=1)) +
   geom_segment(aes(x=date, xend=date, y=rate, yend=mrate), size=0.3,color="grey75",alpha=0.7) +
   geom_line(aes(x=date, y=mrate), size=1.0, color="grey75", alpha=0.7) +
   geom_point(aes(x=date, y=rate), color="grey25", size=1.0, alpha=0.8) +
@@ -349,10 +361,10 @@ p.rate <- ggplot(df.rate) +
 
 ```
 
-The plot below compares what we paid for gas with the national average monthly gas price according to the [US Energy Information Administration](https://www.eia.gov/opendata/qb.php?sdid=PET.EMM_EPM0_PTE_NUS_DPG.M).  Each data point represents the monthly aggregate for all gas purchased during a particular month, and the trendline indicates the national average.
+The plot below compares what we paid for gas with the national average monthly gas price for regular grade fuel according to the [US Energy Information Administration](https://www.eia.gov/opendata/v1/qb.php?category=240692&sdid=PET.EMM_EPMR_PTE_NUS_DPG.M).  Each data point represents the monthly aggregate for all gas purchased during a particular month, and the trendline indicates the national average.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
-ggplotly(p.rate)
+ggplotly(p.rate, tooltip = "text")
 ```
 
 <details>
@@ -402,6 +414,8 @@ p.srate2
 <br>
 <br>
 <hr>
+<br>
+<br>
 <br>
 
 
