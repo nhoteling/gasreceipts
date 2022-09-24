@@ -29,7 +29,7 @@ df.cav$car <- "cav"
 df.cor$car <- "cor"
 df.rav$car <- "rav"
 
-df.cars <- rbind(df.cav, df.cor, df.rav)
+df.cars <- dplyr::bind_rows(df.cav, df.cor, df.rav)
 
 # Function to remove "T" from date string
 # --> date strings are appended with "T" to make them Excel-safe
@@ -336,9 +336,10 @@ p.smileage2
 df.rate <- df.miles
 
 # Read file from eia.gov
-df.gas <- read.csv(GAS_PRICES,
-                   skip = 5, header=FALSE) %>%
-  mutate(date=my(V1)) %>% rename(mrate=V2) %>% select(date,mrate) %>%
+df.gas <- read.csv(GAS_PRICES, skip = 5, header=FALSE) %>%
+  mutate(date=as.POSIXct(paste0("1 ",V1), format="%d %b %Y")) %>% 
+  rename(mrate=V2) %>% 
+  select(date,mrate) %>%
   filter(date >= min(df.rate$date))
 
 # Combine
