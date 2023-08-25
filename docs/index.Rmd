@@ -18,19 +18,21 @@ library(plotly)
 
 library(forecast)
 
-GAS_PRICES <- "../data/U.S._Regular_All_Formulations_Retail_Gasoline_Prices_Monthly_Jun2022.csv"
+GAS_PRICES <- "../data/U.S._Regular_All_Formulations_Retail_Gasoline_Prices_Monthly_Apr2023.csv"
 ```
 
 ```{r, include=FALSE}
 df.cav <- read.table("../data/cavalier_2001.csv",sep=",",header=TRUE,fill=TRUE)
 df.cor <- read.table("../data/corolla_2009.csv",sep=",",header=TRUE,fill=TRUE)
 df.rav <- read.table("../data/rav4_2018.csv",sep=",",header=TRUE,fill=TRUE)
+df.hdr <- read.table("../data/highlander_2023.csv",sep=",",header=TRUE,fill=TRUE)
 
 df.cav$car <- "cav"
 df.cor$car <- "cor"
 df.rav$car <- "rav"
+df.hdr$car <- "hdr"
 
-df.cars <- dplyr::bind_rows(df.cav, df.cor, df.rav)
+df.cars <- dplyr::bind_rows(df.cav, df.cor, df.rav, df.hdr)
 
 # Function to remove "T" from date string
 # --> date strings are appended with "T" to make them Excel-safe
@@ -94,7 +96,7 @@ ggplotly(p.miles, tooltip="text")
 <details>
 <summary> <b> Details: Seasonality </b> </summary>
 
-```{r, include=FALSE}
+```{r, include=FALSE, message=FALSE, warning=FALSE}
 
 # Create a timeseries object
 ts.miles <- na.interp(ts(df.miles$miles, start = c(2005,4),frequency=12))
@@ -128,7 +130,7 @@ p.smiles2 <- ggplot(df.smiles) +
 
 There are some seasonal patterns in the number of miles driven over the course of the year. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #ggplotly(p.smiles2)
 p.smiles2
 ```
@@ -185,6 +187,7 @@ df.grp <- df.cars %>%
 df.cv <- get_missingmonths(df.grp[ df.grp$car == "cav", ]) %>% mutate(car = "cav")
 df.cr <- get_missingmonths(df.grp[ df.grp$car == "cor", ]) %>% mutate(car = "cor")
 df.rv <- get_missingmonths(df.grp[ df.grp$car == "rav", ]) %>% mutate(car = "rav")
+df.hd <- get_missingmonths(df.grp[ df.grp$car == "hdr", ]) %>% mutate(car = "hdr")
 
 # Create a timeseries objects
 ts.cav <- na.interp(ts(df.cv$mileage[ df.cv$car=="cav" ], 
@@ -193,11 +196,14 @@ ts.cor <- na.interp(ts(df.cr$mileage[ df.cr$car=="cor" ],
                        start = c(2008,11),frequency=12))
 ts.rav <- na.interp(ts(df.rv$mileage[ df.rv$car=="rav" ], 
                        start = c(2018,7),frequency=12))
+# ts.hdr <- na.interp(ts(df.hd$mileage[ df.hd$car=="hdr" ], 
+#                        start = c(2023,3),frequency=12))
 
 # Time series decomposition
 fc.cav <- decompose(ts.cav, type="additive")
 fc.cor <- decompose(ts.cor, type="additive")
 fc.rav <- decompose(ts.rav, type="additive")
+# fc.hdr <- decompose(ts.hdr, type="additive")
 
 # Add time series results to dataframes
 df.cv <- df.cv %>% mutate(trend = as.numeric(fc.cav$trend),
@@ -209,15 +215,19 @@ df.cr <- df.cr %>% mutate(trend = as.numeric(fc.cor$trend),
 df.rv <- df.rv %>% mutate(trend = as.numeric(fc.rav$trend),
                           seasonal = as.numeric(fc.rav$seasonal),
                           cor = as.numeric(fc.rav$x) - seasonal)
+# df.hd <- df.hd %>% mutate(trend = as.numeric(fc.hdr$trend),
+#                           seasonal = as.numeric(fc.hdr$seasonal),
+#                           cor = as.numeric(fc.hdr$x) - seasonal)
 
 # Merge it all together
-df.mileage <- rbind(df.cv, df.cr, df.rv) %>%
+df.mileage <- bind_rows(df.cv, df.cr, df.rv, df.hd) %>%
   mutate(label = paste0("Date: ", format.Date(date, "%Y-%m"), "<br>",
                         "Mileage: ", round(mileage, 1)," mpg"))
 
 #
 # Plot monthly gas mileage for each vehicle 
 #
+cols <- c("cav" = "#f8988f","cor"="#74c973", "rav"="#96aff2","hdr"="grey55")
 p.mlg2 <- ggplot(df.mileage, aes(text=label)) + 
   geom_point(aes(x=date, y=mileage, group=car, color=car), size=1.2, alpha=0.5) + 
   geom_line(aes(x=date, y=trend, group=car, color=car), size=1.2, alpha=0.8) + 
@@ -227,6 +237,9 @@ p.mlg2 <- ggplot(df.mileage, aes(text=label)) +
          color="#74c973",size=5,alpha=0.9) +
   annotate("text",x=as.Date("2020-01-01"),y=18,label="Rav4",
          color="#96aff2",size=5,alpha=0.9) +
+  annotate("text",x=as.Date("2023-03-01"),y=38,label="Highlander",
+         color="grey55",size=5,alpha=0.9, hjust=1.0) +
+  scale_color_manual(values = cols) +
   scale_y_continuous(limits = c(15,40)) +
   labs(x="Date",y="Gas Mileage (mpg)") +
   theme_minimal() +
@@ -246,20 +259,23 @@ These histograms compare the monthly gas mileage aggregates to values quoted on 
 
 ```{r, include=FALSE}
 
-df.fuel <- data.frame(car = c("cav","cor","rav"),
-                      city = c(21,27,22),
-                      hwy = c(29,35,28),
-                      cmb = c(24,30,25),
-                      lab = c("Cavalier","Corolla","RAV4"))
+df.fuel <- data.frame(car = c("cav","cor","rav","hdr"),
+                      city = c(21,27,22,36),
+                      hwy = c(29,35,28,35),
+                      cmb = c(24,30,25,36),
+                      lab = c("Cavalier","Corolla","RAV4", "Highlander"))
 
 p.mlg <- ggplot(df.cars) +
   geom_segment(data=df.fuel, aes(x=city, xend=city, y=0, yend=50, color=car)) +
   geom_text(data=df.fuel, aes(x=city, y=45, label="city",color=car), hjust=1.2,alpha=0.8) +
   geom_text(data=df.fuel, aes(x=hwy, y=45, label="hwy",color=car), hjust=1.2,alpha=0.8) +
-  geom_text(data=df.fuel, aes(x=40, y=40, label=lab,color=car), hjust=1.2, size=5) +
+  geom_text(data=df.fuel, aes(x=45, y=40, label=lab,color=car), hjust=1.0, size=5) +
   geom_segment(data=df.fuel, aes(x=hwy, xend=hwy, y=0, yend=50, color=car)) +
   geom_histogram( aes(x=mileage, fill=car), bins=40, alpha=0.8) +
   labs(x="Gas Mileage (mpg)", y="Count") +
+  lims(x=c(15,45)) +
+  scale_color_manual(values = cols) +
+  scale_fill_manual(values = cols) +
   facet_wrap( ~car, ncol=1) +
   theme_minimal() +
   theme(legend.position="none", strip.text = element_blank())
@@ -276,7 +292,7 @@ p.mlg
 <details>
 <summary> <b> Details: Seasonality </b> </summary>
 
-```{r, include=FALSE}
+```{r, include=FALSE, message=FALSE, warning=FALSE}
 
 # Time series object was created above
 # Seasonal component to gas mileage
@@ -320,7 +336,7 @@ Seasonal fluctuations in gas mileage were determined from a time series decompos
 <li>For the <b>Corolla</b> the magnitude is <b>`r format(diffcor,digits=1,nsmall=1)` mpg</b></li>
 <li>For the <b>RAV4</b> the magnitude is <b>`r format(diffrav,digits=1,nsmall=1)` mpg</b></li>
 </ul>
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 p.smileage2
 ```
 </details>
@@ -337,7 +353,7 @@ p.smileage2
 df.rate <- df.miles
 
 # Read file from eia.gov
-df.gas <- read.csv(GAS_PRICES,skip = 5, header=FALSE) %>%
+df.gas <- read.csv(GAS_PRICES, skip = 5, header=FALSE) %>%
   mutate(date=as.POSIXct(paste0("1 ",V1), format="%d %b %Y")) %>%
   rename(mrate=V2) %>% 
   select(date,mrate) %>%
@@ -372,7 +388,7 @@ ggplotly(p.rate, tooltip = "text")
 <details>
 <summary> <b> Details: Seasonality </b> </summary>
 
-```{r, include=FALSE}
+```{r, include=FALSE, message=FALSE, warning=FALSE}
 
 # Create a timeseries object
 ts.rate <- na.interp(ts(df.rate$rate, start = c(2005,4),frequency=12))
@@ -408,7 +424,7 @@ p.srate2 <- ggplot(df.rt) +
 <br>
 The seasonal fluctuations in the gas prices amount to <b> `r dollar(max(df.rt$seasonal)-min(df.rt$seasonal)) ` </b>, with the peak price in <b> `r month(which.max(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>, and the lowest in <b> `r month(which.min(df.rt$seasonal), label=TRUE, abbr=FALSE)` </b>. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 p.srate2
 ```
 </details>
