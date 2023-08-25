@@ -142,7 +142,7 @@ p.smiles2
 
 ## Gas Mileage
 
-```{r, include=FALSE, message=FALSE, echo=FALSE}
+```{r, include=FALSE, message=FALSE, echo=FALSE, warning=FALSE}
 #
 # NOT INCLUDED
 # time series analysis of total miles
