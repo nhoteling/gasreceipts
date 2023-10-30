@@ -7,6 +7,8 @@ output: html_document
 
 
 ```{r setup, include=FALSE}
+## To build, run 'rmarkdown::render_site("docs")'
+
 knitr::opts_chunk$set(echo = TRUE)
 
 library(ggplot2)
@@ -96,7 +98,7 @@ ggplotly(p.miles, tooltip="text")
 <details>
 <summary> <b> Details: Seasonality </b> </summary>
 
-```{r, include=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Create a timeseries object
 ts.miles <- na.interp(ts(df.miles$miles, start = c(2005,4),frequency=12))
@@ -196,14 +198,14 @@ ts.cor <- na.interp(ts(df.cr$mileage[ df.cr$car=="cor" ],
                        start = c(2008,11),frequency=12))
 ts.rav <- na.interp(ts(df.rv$mileage[ df.rv$car=="rav" ], 
                        start = c(2018,7),frequency=12))
-# ts.hdr <- na.interp(ts(df.hd$mileage[ df.hd$car=="hdr" ], 
-#                        start = c(2023,3),frequency=12))
+ts.hdr <- na.interp(ts(df.hd$mileage[ df.hd$car=="hdr" ],
+                       start = c(2023,3),frequency=3))
 
 # Time series decomposition
 fc.cav <- decompose(ts.cav, type="additive")
 fc.cor <- decompose(ts.cor, type="additive")
 fc.rav <- decompose(ts.rav, type="additive")
-# fc.hdr <- decompose(ts.hdr, type="additive")
+fc.hdr <- decompose(ts.hdr, type="additive")
 
 # Add time series results to dataframes
 df.cv <- df.cv %>% mutate(trend = as.numeric(fc.cav$trend),
@@ -215,9 +217,9 @@ df.cr <- df.cr %>% mutate(trend = as.numeric(fc.cor$trend),
 df.rv <- df.rv %>% mutate(trend = as.numeric(fc.rav$trend),
                           seasonal = as.numeric(fc.rav$seasonal),
                           cor = as.numeric(fc.rav$x) - seasonal)
-# df.hd <- df.hd %>% mutate(trend = as.numeric(fc.hdr$trend),
-#                           seasonal = as.numeric(fc.hdr$seasonal),
-#                           cor = as.numeric(fc.hdr$x) - seasonal)
+df.hd <- df.hd %>% mutate(trend = as.numeric(fc.hdr$trend),
+                          seasonal = as.numeric(fc.hdr$seasonal),
+                          cor = as.numeric(fc.hdr$x) - seasonal)
 
 # Merge it all together
 df.mileage <- bind_rows(df.cv, df.cr, df.rv, df.hd) %>%
@@ -257,18 +259,19 @@ ggplotly(p.mlg2, tooltip="text")
 <br>
 These histograms compare the monthly gas mileage aggregates to values quoted on https://www.fueleconomy.gov/ for each vehicle.
 
-```{r, include=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 df.fuel <- data.frame(car = c("cav","cor","rav","hdr"),
                       city = c(21,27,22,36),
                       hwy = c(29,35,28,35),
                       cmb = c(24,30,25,36),
                       lab = c("Cavalier","Corolla","RAV4", "Highlander"))
-
+v_hjust1 = c(1.2, 1.2, 1.2, 2.1)
+v_hjust2 = c(1.2, 1.2, 1.2, -1.0)
 p.mlg <- ggplot(df.cars) +
   geom_segment(data=df.fuel, aes(x=city, xend=city, y=0, yend=50, color=car)) +
-  geom_text(data=df.fuel, aes(x=city, y=45, label="city",color=car), hjust=1.2,alpha=0.8) +
-  geom_text(data=df.fuel, aes(x=hwy, y=45, label="hwy",color=car), hjust=1.2,alpha=0.8) +
+  geom_text(data=df.fuel, aes(x=city, y=45, label="city",color=car), hjust=v_hjust1,alpha=0.8) +
+  geom_text(data=df.fuel, aes(x=hwy, y=45, label="hwy",color=car), hjust=v_hjust2,alpha=0.8) +
   geom_text(data=df.fuel, aes(x=45, y=40, label=lab,color=car), hjust=1.0, size=5) +
   geom_segment(data=df.fuel, aes(x=hwy, xend=hwy, y=0, yend=50, color=car)) +
   geom_histogram( aes(x=mileage, fill=car), bins=40, alpha=0.8) +
@@ -282,7 +285,7 @@ p.mlg <- ggplot(df.cars) +
   
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 p.mlg
 ```
 
@@ -292,7 +295,7 @@ p.mlg
 <details>
 <summary> <b> Details: Seasonality </b> </summary>
 
-```{r, include=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 # Time series object was created above
 # Seasonal component to gas mileage
@@ -348,7 +351,7 @@ p.smileage2
 ## Gas Prices
 
 
-```{r, include=FALSE, eval=TRUE, warning=FALSE}
+```{r, echo=FALSE, message=FALSE, eval=TRUE, warning=FALSE}
 # Gas prices
 df.rate <- df.miles
 
