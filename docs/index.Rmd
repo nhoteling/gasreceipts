@@ -20,7 +20,8 @@ library(plotly)
 
 library(forecast)
 
-GAS_PRICES <- "../data/U.S._Regular_All_Formulations_Retail_Gasoline_Prices_Monthly_Apr2023.csv"
+# GAS_PRICES <- "../data/U.S._Regular_All_Formulations_Retail_Gasoline_Prices_Monthly_Apr20'23.csv"
+GAS_PRICES <- "../data/EMM_EPM0_PTE_NUS_DPGm.csv"
 ```
 
 ```{r, include=FALSE}
@@ -355,12 +356,19 @@ p.smileage2
 # Gas prices
 df.rate <- df.miles
 
-# Read file from eia.gov
-df.gas <- read.csv(GAS_PRICES, skip = 5, header=FALSE) %>%
-  mutate(date=as.POSIXct(paste0("1 ",V1), format="%d %b %Y")) %>%
-  rename(mrate=V2) %>% 
-  select(date,mrate) %>%
+df.gas <- readr::read_csv(GAS_PRICES, skip=2) %>%
+  rename(mrate = `U.S. All Grades All Formulations Retail Gasoline Prices (Dollars per Gallon)`) %>%
+  mutate(date = as.POSIXct(paste0("1-",Date), format="%d-%b-%Y")) %>%
+  dplyr::select(date, mrate) %>%
   filter(date >= min(df.rate$date))
+  
+
+# Read file from eia.gov
+# df.gas <- read.csv(GAS_PRICES, skip = 5, header=FALSE) %>%
+#   mutate(date=as.POSIXct(paste0("1 ",V1), format="%d %b %Y")) %>%
+#   rename(mrate=V2) %>% 
+#   select(date,mrate) %>%
+#   filter(date >= min(df.rate$date))
 
 # Combine
 df.rate <- df.rate %>% left_join(df.gas) %>%
